@@ -31,6 +31,9 @@ sim = TwoLink()
 sim.show()
 
 time.sleep(1)
+sim.move_link1(1)
+
+time.sleep(1)
 print('lets move')
 for i in range(1*cntrl_freq):
 	# Command the first link to move delta_angle
