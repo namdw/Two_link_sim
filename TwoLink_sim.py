@@ -42,54 +42,72 @@ gripper = ''
 angle1 = 0
 angle2 = 0
 thread1 = ''
-max_speed = 2
+thread2 = ''
+max_speed = 10
 cntrl_freq = 100
 
 
 
 class myThread(threading.Thread):
-	def __init__(self, func):
+	def __init__(self, func, name):
 		threading.Thread.__init__(self)
 		self.func = func
+		self.name = name
 
 	def run(self):
 		self.func()
-
+		print(self.name, 'thread done')
 
 class TwoLink(object):
 	def __init__(self):
 		self.__run_control = False
+		self.__in_control = False
 		self.__root = ''
+
 		self.angle1 = 0
 		self.angle2 = 0
+		self.target_angle1 = 0
+		self.target_angle2 = 0
 	
 	def show(self):
-		thread1 = myThread(self.show_sub)
+		global thread1, thread2
+		thread1 = myThread(self.show_sub, 'display')
 		thread1.start()
 		time.sleep(0.1)
 		self.__run_control = True
-		thread2 = myThread(self.controlLoop)
+		thread2 = myThread(self.controlLoop, 'control')
 		thread2.start()
+		# thread1.join()
+		# thread2.join()
 
 	def getAngles(self):
 		return [self.angle1, self.angle2]
 
 	def controlLoop(self):
 		while(self.__run_control):
-			if (self.__root==''): break
+			if(self.angle1 != self.target_angle1):
+				self.angle1 = self.angle1 + (2*((self.target_angle1-self.angle1) > 0)-1) * max_speed/cntrl_freq
+				if(abs(self.target_angle1-self.angle1) < max_speed/cntrl_freq):
+					self.angle1 = self.target_angle1
+			if(self.angle2 != self.target_angle2):
+				self.angle2 = self.angle2 + (2*((self.target_angle2-self.angle2) > 0)-1) * max_speed/cntrl_freq
+				if(abs(self.target_angle2-self.angle2) < max_speed/cntrl_freq):
+					self.angle2 = self.target_angle2
 			self.redraw()
 			time.sleep(1/cntrl_freq)
 		print('End of while loop')
+		self.__root.destroy()
+		# time.sleep(2)
 
 	def move_link1(self, delta_a):
 		global angle1
-		angle1 = angle1 + delta_a
-		self.angle1 = angle1
+		self.target_angle1 = self.target_angle1 + delta_a
+		# self.angle1 = angle1
 
 	def move_link2(self, delta_a):
 		global angle2 
-		angle2 = angle2 + delta_a
-		self.angle2 = angle2
+		self.target_angle2 = self.target_angle2 + delta_a
+		# self.angle2 = angle2
 
 	def redraw(self):
 		global w, link1, link2, joint_pos, gripper_pos
@@ -100,15 +118,14 @@ class TwoLink(object):
 		delta_y1 = new_pos[1]-joint_pos[1]
 		delta_x2 = new_pos2[0]-gripper_pos[0]
 		delta_y2 = new_pos2[1]-gripper_pos[1]
-
-		w.delete('link')
 		
-		w.move(joint, delta_x1, delta_y1)
-		w.move(gripper, delta_x2, delta_y2)
+		w.coords(link1, ground_pos[0], ground_pos[1], new_pos[0], new_pos[1])
+		w.coords(link2, new_pos[0], new_pos[1], new_pos2[0], new_pos2[1])
+
 		joint_pos = new_pos
 		gripper_pos = new_pos2
-		link1 = w.create_line(ground_pos[0], ground_pos[1], new_pos[0], new_pos[1], tags='link')
-		link2 = w.create_line(new_pos[0], new_pos[1], new_pos2[0], new_pos2[1], tags='link')
+		w.move(joint, delta_x1, delta_y1)
+		w.move(gripper, delta_x2, delta_y2)
 
 	def show_sub(self):
 		global joint_pos, gripper_pos, w, link1, link2, joint, gripper, root
@@ -131,16 +148,17 @@ class TwoLink(object):
 			joint_pos = (ground_pos[0] + link1_len * cos(angle1), ground_pos[1] + link1_len * sin(angle2))
 			joint = w.create_oval(joint_pos[0]-node_r, joint_pos[1]-node_r, joint_pos[0]+node_r, joint_pos[1]+node_r, fill='red', outline='red')
 			gripper_pos = (joint_pos[0] + link2_len * cos(angle1+angle2), joint_pos[1] + link2_len * sin(angle1+angle2))
-			gripper = w.create_oval(gripper_pos[0]-node_r, gripper_pos[1]-node_r, gripper_pos[0]+node_r, gripper_pos[1]+node_r, fill='red', outline='red')
+			gripper = w.create_oval(gripper_pos[0]-node_r, gripper_pos[1]-node_r, gripper_pos[0]+node_r, gripper_pos[1]+node_r, outline='black', width=3)
 			
-			link1 = w.create_line(ground_pos[0], ground_pos[1], joint_pos[0], joint_pos[1], tags='link')
-			link2 = w.create_line(joint_pos[0], joint_pos[1], gripper_pos[0], gripper_pos[1], tags='link')
+			link1 = w.create_line(ground_pos[0], ground_pos[1], joint_pos[0], joint_pos[1], tags='link',  width=5)
+			link2 = w.create_line(joint_pos[0], joint_pos[1], gripper_pos[0], gripper_pos[1], tags='link', width=5)
 			self.__root.protocol("WM_DELETE_WINDOW", self.on_closing)
 			self.__root.mainloop()
 
 	def on_closing(self):
-		print('Going to exit now!')
 		self.__run_control = False
-		time.sleep(0.1)
-		self.__root.destroy()
-		self.__root = ''
+		print('run_control set to false')
+		# thread2.join()
+		# thread2.join()
+		# print('thread2 joined')
+		# self.__root.destroy()
