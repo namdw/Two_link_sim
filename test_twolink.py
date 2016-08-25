@@ -33,6 +33,9 @@ sim.show()
 time.sleep(1)
 sim.move_link1(1)
 
+time.sleep(0.5)
+sim.randPoint()
+
 time.sleep(1)
 print('lets move')
 for i in range(1*cntrl_freq):
@@ -40,6 +43,7 @@ for i in range(1*cntrl_freq):
 	sim.move_link1(3/cntrl_freq)
 	time.sleep(1/cntrl_freq)
 print('moved 1', sim.getAngles()) # get the current angle values (in radians)
+print(sim.getEndpoint())
 
 time.sleep(1)
 for i in range(1*cntrl_freq):
