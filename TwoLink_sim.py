@@ -29,6 +29,8 @@ from math import *
 # def _create_circle(self, x, y, r, **kwargs):
 # 	return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
 
+degperpi = 57.296
+
 ground_pos = (300,300)
 joint_pos = (0,0)
 gripper_pos = (0,0)
@@ -45,6 +47,14 @@ thread1 = ''
 thread2 = ''
 max_speed = 10
 cntrl_freq = 100
+#link1_limit = [-90,90]
+#link2_limit = [-150,30]
+
+initAngle1 = 30/degperpi
+initAngle2 = -90/degperpi
+
+posStateDivider = 5.0
+angleStateDivider = 1.0
 
 
 
@@ -64,10 +74,10 @@ class TwoLink(object):
 		self.__in_control = False
 		self.__root = ''
 
-		self.angle1 = 0
-		self.angle2 = 0
-		self.target_angle1 = 0
-		self.target_angle2 = 0
+		self.angle1 = initAngle1
+		self.angle2 = initAngle2
+		self.target_angle1 = initAngle1
+		self.target_angle2 = initAngle2
 	
 	def show(self):
 		global thread1, thread2
@@ -82,6 +92,27 @@ class TwoLink(object):
 
 	def getAngles(self):
 		return [self.angle1, self.angle2]
+
+#chlee modified_20160827
+	def getPos(self):
+		self.redPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2)
+		self.redPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2)
+		return [self.redPosx, self.redPosy]
+		
+#chlee modified_20160827
+	def getState(self):
+		self.angleState1 = self.angle1*degperpi//angleStateDivider 
+		self.angleState2 = self.angle2*degperpi//angleStateDivider
+		self.posStatex = self.redPosx//posStateDivider
+		self.posStatey = self.redPosy//posStateDivider
+		return [self.angleState1, self.angleState2, self.posStatex, self.posStatey]  
+
+#chlee modified_20160827
+	def getReward(self, goal):
+		self.goalDiffX = goal[0]//posStateDivider - self.redPosx//posStateDivider
+		self.goalDiffY = goal[1]//posStateDivider - self.redPosy//posStateDivider
+		self.Reward = sqrt(self.goalDiffX*self.goalDiffX + self.goalDiffY*self.goalDiffY)
+		return [self.Reward]
 
 	def controlLoop(self):
 		while(self.__run_control):
