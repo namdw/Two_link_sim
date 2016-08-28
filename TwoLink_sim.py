@@ -24,6 +24,7 @@ from tkinter import ttk
 import time
 import threading
 from math import *
+import random
 
 
 # def _create_circle(self, x, y, r, **kwargs):
@@ -93,6 +94,7 @@ class TwoLink(object):
 	def getAngles(self):
 		return [self.angle1, self.angle2]
 
+
 #chlee modified_20160827
 	def getPos(self):
 		self.redPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2)
@@ -114,6 +116,29 @@ class TwoLink(object):
 		self.Reward = sqrt(self.goalDiffX*self.goalDiffX + self.goalDiffY*self.goalDiffY)
 		return [self.Reward]
 
+	def getEndpoint(self):
+		return [gripper_pos[0]-ground_pos[0], ground_pos[1]-gripper_pos[1]]
+
+	def getState(self):
+		return [self.angle1, self.angle2, gripper_pos[0]-ground_pos[0], ground_pos[1]-gripper_pos[1]]
+
+	def move_link1(self, delta_a):
+		global angle1
+		self.target_angle1 = self.target_angle1 + delta_a
+		# self.angle1 = angle1
+
+	def move_link2(self, delta_a):
+		global angle2 
+		self.target_angle2 = self.target_angle2 + delta_a
+		# self.angle2 = angle2
+
+	def randPoint(self):
+		randx = random.random()*200+50
+		randy = random.random()*200+50
+		randr = 7
+		w.create_oval(randx-randr, randy-randr, randx+randr, randy+randr, fill='green', outline='green')
+
+
 	def controlLoop(self):
 		while(self.__run_control):
 			if(self.angle1 != self.target_angle1):
@@ -128,17 +153,6 @@ class TwoLink(object):
 			time.sleep(1/cntrl_freq)
 		print('End of while loop')
 		self.__root.destroy()
-		# time.sleep(2)
-
-	def move_link1(self, delta_a):
-		global angle1
-		self.target_angle1 = self.target_angle1 + delta_a
-		# self.angle1 = angle1
-
-	def move_link2(self, delta_a):
-		global angle2 
-		self.target_angle2 = self.target_angle2 + delta_a
-		# self.angle2 = angle2
 
 	def redraw(self):
 		global w, link1, link2, joint_pos, gripper_pos
@@ -175,7 +189,7 @@ class TwoLink(object):
 
 			node_r = 10
 
-			ground = w.create_oval(ground_pos[0]-10, ground_pos[1]-node_r, ground_pos[0]+node_r, ground_pos[1]+node_r, fill='red', outline='red')
+			ground = w.create_oval(ground_pos[0]-node_r, ground_pos[1]-node_r, ground_pos[0]+node_r, ground_pos[1]+node_r, fill='red', outline='red')
 			joint_pos = (ground_pos[0] + link1_len * cos(angle1), ground_pos[1] + link1_len * sin(angle2))
 			joint = w.create_oval(joint_pos[0]-node_r, joint_pos[1]-node_r, joint_pos[0]+node_r, joint_pos[1]+node_r, fill='red', outline='red')
 			gripper_pos = (joint_pos[0] + link2_len * cos(angle1+angle2), joint_pos[1] + link2_len * sin(angle1+angle2))

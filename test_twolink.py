@@ -116,8 +116,10 @@ print(q_3dmat)
 print('lets move')
 for i in range(10):
 	# Command the first link to move delta_angle
+
 	sim.move_link1(0.5/cntrl_freq)
 	sim.move_link2(-1/cntrl_freq)
+
 
 	angle = sim.getAngles()
 	pos = sim.getPos()
