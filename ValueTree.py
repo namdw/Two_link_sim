@@ -32,7 +32,7 @@ class ValueNode():
 			if(self.children[i].value == value):
 				return self.children[i]
 		return None
-		
+
 	def quickSearch(self, list):
 	'''
 	quick search of given list
@@ -49,7 +49,7 @@ class ValueTree():
 	''' 
 	insert the given list into the tree
 	'''
-		if(len(data)!=self.numState):
+		if(len(data)!=self.numState+2):
 			print("Inappropriate data!")
 		else
 			pass # TODO: do the insertion here
@@ -58,7 +58,7 @@ class ValueTree():
 	'''
 	Find the branch with given data and return the value at the end
 	'''
-		if(len(data)!=self.numState-1):
+		if(len(data)!=self.numState+1):
 			print("Not enough values given to find!")
 			return None
 		else
