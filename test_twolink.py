@@ -57,6 +57,47 @@ def getQList(mat, state):
 
 	return Qlist
 
+def chooseAction(QList):
+
+	dsize = np.shape(QList)
+
+	maxQ = max(QList)
+	count = QList.count(maxQ)
+
+	if count > 1:
+		i = 0
+		for d in range(0,dsize[0]):
+			if maxQ == QList[d]:
+				chosenActionList[i] = d
+				i = i + 1
+		chosenAction = random.choice(chosenActionList)
+
+	else:
+		for d in range(0,dsize[0]):
+			if maxQ == QList[d]:
+				chosenAction = d
+
+	return chosenAction
+
+def egreedyExploration(QList):
+
+	epsilon = 0.1
+	actionList = [0,1,2,3]
+
+	if random.random() < epsilon:
+		egreedyChosenAction = random.choice(actionList)
+
+	else:
+		egreedyChosenAction = chooseAction(QList)
+
+	return egreedyChosenAction
+
+
+
+
+
+
+
 
 
 
@@ -69,6 +110,7 @@ sim.show()
 time.sleep(1)
 
 # Initialize !!!
+#----------------------------------------------------------------------------------------------------
 angle = sim.getAngles()
 pos = sim.getPos()
 state = sim.getState()
@@ -98,6 +140,9 @@ else:
 	newQAset[:,5] = 0
 	newQAset[action,5] = currentQvalue
 	q_3dmat = np.concatenate((q_3dmat,[newQAset]), axis = 0)
+#---------------------------------------------------------------------------------------------------------
+
+
 
 # e greedy exploration
 
