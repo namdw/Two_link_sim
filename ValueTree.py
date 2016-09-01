@@ -2,7 +2,7 @@
 
 class ValueTree(object):
 
-	def __init__(self, root, numState):
+	def __init__(self, numState):
 		self.root = ValueNode('root')
 		self.numState = numState
 
@@ -12,7 +12,7 @@ class ValueTree(object):
 	def insert(self, data):
 		if(len(data)!=self.numState+2):
 			print("Inappropriate data!")
-		else
+		else:
 			self.root.makeBranch(data)
 
 	'''
@@ -22,11 +22,8 @@ class ValueTree(object):
 		if(len(data)!=self.numState+1):
 			print("Not enough values given to find!")
 			return None
-		else
+		else:
 			return self.root.searchBranch(data)
-
-	def update(self, value):
-		pass
 
 
 
@@ -52,29 +49,28 @@ class ValueNode(object):
 	def makeBranch(self, data):
 		if(len(data)>1):
 			childNode = self.searchChild(data[0])
-			if(chidlNode==None):
+			if(childNode==None):
 				childNode = ValueNode(data[0])
-				self.addNode(chidlNode)
-			childNode.makeBranch(data[1:-1])
+				self.addNode(childNode)
+			childNode.makeBranch(data[1:])
 		if(len(data)==1):
 			if(len(self.children)>1):
 				print("Error! incorrect branch made")
-			else if(len(self.children)==1):
+			elif(len(self.children)==1):
 				self.children[0].updateVal(data[0])
 			else:
-				selef.add(ValueNode(data[0]))
+				self.addNode(ValueNode(data[0]))
 
 
 	def searchBranch(self, data):
+		childNode = self.searchChild(data[0])
+		if(childNode==None):
+			return None
+
 		if(len(data)==1):
-			if(self.searchChild(data[0])==None): return None
-			else: return self.searchChild(data[0]).children[0].value
+				return childNode.children[0].value
 		if(len(data)>1):
-			childNode = self.searchChild(data[0])
-			if(chidlNode==None):
-				return None
-			if(len(data)>1):	
-				childNode.searchBranch(data[1:-1])
+			childNode.searchBranch(data[1:])
 
 	''' 
 	changeVal(newVal)
