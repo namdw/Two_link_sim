@@ -68,9 +68,9 @@ class ValueNode(object):
 			return None
 
 		if(len(data)==1):
-				return childNode.children[0].value
+			return childNode.children[0].value
 		if(len(data)>1):
-			childNode.searchBranch(data[1:])
+			return childNode.searchBranch(data[1:])
 
 	''' 
 	changeVal(newVal)

@@ -20,11 +20,6 @@ print(dataPool)
 for i in range(len(dataPool)):
 	dataTree.insert(dataPool[i])
 
-print(dataTree)
-
-for i in range(len(dataTree.root.children)):
-	print(dataTree.root.children[i].value)
-
 for i in range(len(dataPool)):
 	value = dataTree.find(dataPool[i][0:-1])
 	print(value)
