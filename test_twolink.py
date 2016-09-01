@@ -24,6 +24,7 @@ from TwoLink_sim import * # add this linke to use the simulator
 import time
 import numpy as np
 import random
+from ValueTree import *
 
 # Variables
 tryNumber = range(1,1,100) # how many try
@@ -121,25 +122,27 @@ currentQvalue = 0
 
 currentQset = np.array([state[0], state[1], state[2], state[3], action, currentQvalue])
 
-# Init QvalueMatrix
-dsize = np.shape(q_3dmat)
+q_tree = ValueTree(4)
 
-for d in range(0,dsize[0]):
-	if np.all(q_3dmat[d,0,:4] == currentQset[:4]): # search state
-		flag = 1
-		depth = d
+# # Init QvalueMatrix
+# dsize = np.shape(q_3dmat)
 
-if flag == 1:
-	for c in range(0,dsize[1]):
-		if q_3dmat[depth,c,4] == currentQset[4]: # search action
-			q_3dmat[depth,c] = currentQset
-			flag = 0
-else: 
-	newQAset = np.array([currentQset, currentQset, currentQset, currentQset])
-	newQAset[:,4] = actionList
-	newQAset[:,5] = 0
-	newQAset[action,5] = currentQvalue
-	q_3dmat = np.concatenate((q_3dmat,[newQAset]), axis = 0)
+# for d in range(0,dsize[0]):
+# 	if np.all(q_3dmat[d,0,:4] == currentQset[:4]): # search state
+# 		flag = 1
+# 		depth = d
+
+# if flag == 1:
+# 	for c in range(0,dsize[1]):
+# 		if q_3dmat[depth,c,4] == currentQset[4]: # search action
+# 			q_3dmat[depth,c] = currentQset
+# 			flag = 0
+# else: 
+# 	newQAset = np.array([currentQset, currentQset, currentQset, currentQset])
+# 	newQAset[:,4] = actionList
+# 	newQAset[:,5] = 0
+# 	newQAset[action,5] = currentQvalue
+# 	q_3dmat = np.concatenate((q_3dmat,[newQAset]), axis = 0)
 #---------------------------------------------------------------------------------------------------------
 
 
@@ -171,6 +174,8 @@ for i in range(10):
 	currentQset = np.array([state[0], state[1], state[2], state[3], action, currentQvalue])
 
 	# Update QvalueMatrix
+	q_tree.insert(currentQset)
+
 	dsize = np.shape(q_3dmat)
 	
 	for d in range(0,dsize[0]):
@@ -212,6 +217,8 @@ for i in range(10):
 	currentQset = np.array([state[0], state[1], state[2], state[3], action, currentQvalue])
 
 	# Update QvalueMatrix
+	q_tree.insert(currentQset)
+
 	dsize = np.shape(q_3dmat)
 	
 	for d in range(0,dsize[0]):
@@ -236,3 +243,4 @@ for i in range(10):
 	time.sleep(2/cntrl_freq)
 
 print(q_3dmat)
+print(q_tree.root.children)
