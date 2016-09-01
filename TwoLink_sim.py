@@ -54,8 +54,8 @@ cntrl_freq = 100
 initAngle1 = 30/degperpi
 initAngle2 = -90/degperpi
 
-posStateDivider = 5.0
-angleStateDivider = 1.0
+posStateDivider = 5
+angleStateDivider = 1
 
 
 
@@ -103,8 +103,8 @@ class TwoLink(object):
 		
 #chlee modified_20160827
 	def getState(self):
-		self.angleState1 = self.angle1*degperpi//angleStateDivider 
-		self.angleState2 = self.angle2*degperpi//angleStateDivider
+		self.angleState1 = (self.angle1*degperpi)//angleStateDivider 
+		self.angleState2 = (self.angle2*degperpi)//angleStateDivider
 		self.posStatex = self.redPosx//posStateDivider
 		self.posStatey = self.redPosy//posStateDivider
 		return [self.angleState1, self.angleState2, self.posStatex, self.posStatey]  
@@ -118,9 +118,6 @@ class TwoLink(object):
 
 	def getEndpoint(self):
 		return [gripper_pos[0]-ground_pos[0], ground_pos[1]-gripper_pos[1]]
-
-	def getState(self):
-		return [self.angle1, self.angle2, gripper_pos[0]-ground_pos[0], ground_pos[1]-gripper_pos[1]]
 
 	def move_link1(self, delta_a):
 		global angle1

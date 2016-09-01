@@ -34,21 +34,16 @@ fg_rate = 0.8
 currentQvalue = 0
 flag = 0
 epsilon = 0.1
-actionList = np.array([-3,-2,-1,0,1,2,3])
-q_3dmat = np.array([[[0.0,0.0,0.0,0.0,-3,0.0], 
-	                 [0.0,0.0,0.0,0.0,-2,0.0],
-	                 [0.0,0.0,0.0,0.0,-1,0.0],
-	                 [0.0,0.0,0.0,0.0, 0,0.0],
-	                 [0.0,0.0,0.0,0.0, 1,0.0],
-	                 [0.0,0.0,0.0,0.0, 2,0.0],
-	                 [0.0,0.0,0.0,0.0, 3,0.0]],
-	                [[0.0,0.0,0.0,0.0,-3,0.0],
-	                 [0.0,0.0,0.0,0.0,-2,0.0],
-	                 [0.0,0.0,0.0,0.0,-1,0.0],
-	                 [0.0,0.0,0.0,0.0, 0,0.0],
-	                 [0.0,0.0,0.0,0.0, 1,0.0],
-	                 [0.0,0.0,0.0,0.0, 2,0.0],
-	                 [0.0,0.0,0.0,0.0, 3,0.0]]]) 
+actionList = np.array([0,1,2,3])
+# 0: 1axis -1 step, 1: 1axis +1 step, 2: 2axis -1 step, 3: 2axis +1 step
+q_3dmat = np.array([[[0.0,0.0,0.0,0.0,0,0.0], 
+	                 [0.0,0.0,0.0,0.0,1,0.0],
+	                 [0.0,0.0,0.0,0.0,2,0.0],
+	                 [0.0,0.0,0.0,0.0,3,0.0]],
+	                [[0.0,0.0,0.0,0.0,0,0.0],
+	                 [0.0,0.0,0.0,0.0,1,0.0],
+	                 [0.0,0.0,0.0,0.0,2,0.0],
+	                 [0.0,0.0,0.0,0.0,3,0.0]]]) 
 # make 3d array for state,action,value set 
 # q_3dmat[0,0] = [link1State, link2State, posxState, posyState, action, QValue]
 
@@ -58,7 +53,7 @@ def getQList(mat, state):
 
 	for d in range(0,dsize[0]):
 		if np.all(mat[d,0,:4] == state): # search state
-			Qlist = [mat[d,0,5], mat[d,1,5], mat[d,2,5], mat[d,3,5], mat[d,4,5], mat[d,5,5], mat[d,6,5]]
+			Qlist = [mat[d,0,5], mat[d,1,5], mat[d,2,5], mat[d,3,5]]
 
 	return Qlist
 
@@ -98,11 +93,10 @@ if flag == 1:
 			q_3dmat[depth,c] = currentQset
 			flag = 0
 else: 
-	newQAset = np.array([currentQset, currentQset, currentQset, currentQset, currentQset, currentQset, currentQset])
+	newQAset = np.array([currentQset, currentQset, currentQset, currentQset])
 	newQAset[:,4] = actionList
 	newQAset[:,5] = 0
-	AppliedAction = action + 3
-	newQAset[AppliedAction,5] = currentQvalue
+	newQAset[action,5] = currentQvalue
 	q_3dmat = np.concatenate((q_3dmat,[newQAset]), axis = 0)
 
 # e greedy exploration
@@ -147,11 +141,10 @@ for i in range(10):
 				q_3dmat[depth,c] = currentQset
 				flag = 0
 	else: 
-		newQAset = np.array([currentQset, currentQset, currentQset, currentQset, currentQset, currentQset, currentQset])
+		newQAset = np.array([currentQset, currentQset, currentQset, currentQset])
 		newQAset[:,4] = actionList
 		newQAset[:,5] = 0
-		AppliedAction = action + 3
-		newQAset[AppliedAction,5] = currentQvalue
+		newQAset[action,5] = currentQvalue
 		q_3dmat = np.concatenate((q_3dmat,[newQAset]), axis = 0)
 
 	time.sleep(2/cntrl_freq)
@@ -189,11 +182,10 @@ for i in range(10):
 				q_3dmat[depth,c] = currentQset
 				flag = 0
 	else: 
-		newQAset = np.array([currentQset, currentQset, currentQset, currentQset, currentQset, currentQset, currentQset])
+		newQAset = np.array([currentQset, currentQset, currentQset, currentQset])
 		newQAset[:,4] = actionList
 		newQAset[:,5] = 0
-		AppliedAction = action + 3
-		newQAset[AppliedAction,5] = currentQvalue
+		newQAset[action,5] = currentQvalue
 		q_3dmat = np.concatenate((q_3dmat,[newQAset]), axis = 0)
 
 	time.sleep(2/cntrl_freq)
