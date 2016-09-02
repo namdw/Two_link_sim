@@ -26,13 +26,15 @@ import numpy as np
 import random
 from ValueTree import *
 import math
+import pickle
+import os.path
 
 # Variables
 tryNumber = range(1,1,100) # how many try
 cntrl_freq = 100
 goal = [400,450]
 
-epsilon = 0.5
+epsilon = 0.01
 actionList = []
 actionX = range(-3,4)
 actionY = range(-3,4)
@@ -40,7 +42,14 @@ for x in actionX:
 	for y in actionY:
 		actionList.append([x,y])
 numState = 4
-q_tree = ValueTree(numState)
+filename = "pretest_tree.p"
+if os.path.isfile(filename):
+	f = open(filename,'rb')
+	q_tree = pickle.load(f)
+	f.close()
+else:
+	q_tree = ValueTree(numState)
+
 
 
 # Function
@@ -85,13 +94,13 @@ print('lets move')
 for i in range(10):
 	# Command the first link to move delta_angle
 
-	sim.move_link1(0.5/cntrl_freq)
-	sim.move_link2(-1/cntrl_freq)
 
 
 	angle = sim.getAngles()
 	pos = sim.getPos()
 	state = sim.getState()
+	sim.move_link1(0.5/cntrl_freq)
+	sim.move_link2(-1/cntrl_freq)
 	reward = sim.getReward(goal)
 
 	action = [0.5,-1]
@@ -108,12 +117,12 @@ for i in range(10):
 print('lets move2')
 for i in range(10):
 	# Command the first link to move delta_angle
-	sim.move_link1(-0.5/cntrl_freq)
-	sim.move_link2(1/cntrl_freq)
 
 	angle = sim.getAngles()
 	pos = sim.getPos()
 	state = sim.getState()
+	sim.move_link1(-0.5/cntrl_freq)
+	sim.move_link2(1/cntrl_freq)
 	reward = sim.getReward(goal)
 
 	action = [-0.5,1]
@@ -132,19 +141,26 @@ for i in range(10):
 for i in range(1000):
 	# Command the first link to move delta_angle
 	state = sim.getState()
-	reward = sim.getReward(goal)
 	action = egreedyExplore(state)
 
+	sim.move_link1(action[0]/cntrl_freq)
+	sim.move_link2(action[1]/cntrl_freq)
+	
+	reward = sim.getReward(goal)
+	
 	currentQset = [state[0], state[1], state[2], state[3], action, reward]
 
 	# Update QvalueMatrix
 	q_tree.insert(currentQset)
 
-	sim.move_link1(action[0]/cntrl_freq)
-	sim.move_link2(action[1]/cntrl_freq)
 
 	time.sleep(1/cntrl_freq)
+print("done exploring")
 
+f = open(filename,'wb')
+pickle.dump(q_tree,f)
+f.close()
+print("done with pickle")
 
 # if __name__ == '__main__':
 #     sys.exit(main())
