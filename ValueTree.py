@@ -85,7 +85,7 @@ class ValueNode(object):
 	'''
 	def updateVal(self, newVal):
 		#  TODO: add the value update method
-		self.value = self.value + newVal
+		self.value = (self.value + newVal)/2
 
 	'''
 	Searchs for the child with given value. return None if not found
