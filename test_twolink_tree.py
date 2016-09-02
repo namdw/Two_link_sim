@@ -30,70 +30,47 @@ import math
 # Variables
 tryNumber = range(1,1,100) # how many try
 cntrl_freq = 100
-goal = [150,30]
-ln_rate = 0.8
-fg_rate = 0.8
-currentQvalue = 0
-flag = 0
-epsilon = 0.1
-actionList = np.array(range(-3,-4))
+goal = [400,450]
 
-# Functions
-def getQList(mat, state):
-	dsize = np.shape(mat)
+epsilon = 0.5
+actionList = []
+actionX = range(-3,4)
+actionY = range(-3,4)
+for x in actionX:
+	for y in actionY:
+		actionList.append([x,y])
+numState = 4
+q_tree = ValueTree(numState)
 
-	for d in range(0,dsize[0]):
-		if np.all(mat[d,0,:4] == state): # search state
-			Qlist = [mat[d,0,5], mat[d,1,5], mat[d,2,5], mat[d,3,5]]
 
-	return Qlist
+# Function
+def getAction(state):
+	# valList = np.zeros(len(actionList))
+	valList = []
+	for i in range(len(actionList)):
+		currentQset = [state[0], state[1], state[2], state[3], actionList[i]]
+		value = q_tree.find(currentQset)
+		if(value == None): value = float('-inf')
+		valList.append(value)
+	indices = [i for i, x in enumerate(valList) if x == max(valList)]
+	return actionList[random.choice(indices)]
 
-def chooseAction(QList):
 
-	dsize = np.shape(QList)
-
-	maxQ = max(QList)
-	count = QList.count(maxQ)
-
-	if count > 1:
-		i = 0
-		for d in range(0,dsize[0]):
-			if maxQ == QList[d]:
-				chosenActionList[i] = d
-				i = i + 1
-		chosenAction = random.choice(chosenActionList)
-
-	else:
-		for d in range(0,dsize[0]):
-			if maxQ == QList[d]:
-				chosenAction = d
-
-	return chosenAction
-
-def egreedyExploration(QList):
-
+def egreedyExplore(state):
 	if random.random() < epsilon:
-		egreedyChosenAction = random.choice(actionList)
+		return random.choice(actionList)
 
 	else:
-		egreedyChosenAction = chooseAction(QList)
-
-	return egreedyChosenAction
+		return getAction(state)
 
 
-
-
-
-
-
-
-
-
+# def main():
 # Create the simulator object
 sim = TwoLink()
 
 # Start and display the Simulator graphics
 sim.show()
+sim.makeGoal(goal)
 
 time.sleep(1)
 
@@ -104,10 +81,8 @@ time.sleep(1)
 
 # temporary QA pair
 
-print(q_3dmat)
-
 print('lets move')
-for i in range(100):
+for i in range(10):
 	# Command the first link to move delta_angle
 
 	sim.move_link1(0.5/cntrl_freq)
@@ -119,19 +94,19 @@ for i in range(100):
 	state = sim.getState()
 	reward = sim.getReward(goal)
 
-	action = 0
-	currentQvalue = 0
+	action = [0.5,-1]
+	currentQvalue = reward
 
-	currentQset = np.array([state[0], state[1], state[2], state[3], action, currentQvalue])
+	currentQset = [state[0], state[1], state[2], state[3], action, currentQvalue]
 
 	# Update QvalueMatrix
 	q_tree.insert(currentQset)
 
-	time.sleep(2/cntrl_freq)
+	time.sleep(1/cntrl_freq)
 
 
 print('lets move2')
-for i in range(100):
+for i in range(10):
 	# Command the first link to move delta_angle
 	sim.move_link1(-0.5/cntrl_freq)
 	sim.move_link2(1/cntrl_freq)
@@ -141,15 +116,35 @@ for i in range(100):
 	state = sim.getState()
 	reward = sim.getReward(goal)
 
-	action = 0
-	currentQvalue = 0
+	action = [-0.5,1]
+	currentQvalue = reward
 
-	currentQset = np.array([state[0], state[1], state[2], state[3], action, currentQvalue])
+	currentQset = [state[0], state[1], state[2], state[3], action, currentQvalue]
 
 	# Update QvalueMatrix
 	q_tree.insert(currentQset)
 
-	time.sleep(2/cntrl_freq)
+	time.sleep(1/cntrl_freq)
 
 
-print(q_tree.root.children)
+# print(q_tree.root.children)
+
+for i in range(1000):
+	# Command the first link to move delta_angle
+	state = sim.getState()
+	reward = sim.getReward(goal)
+	action = egreedyExplore(state)
+
+	currentQset = [state[0], state[1], state[2], state[3], action, reward]
+
+	# Update QvalueMatrix
+	q_tree.insert(currentQset)
+
+	sim.move_link1(action[0]/cntrl_freq)
+	sim.move_link2(action[1]/cntrl_freq)
+
+	time.sleep(1/cntrl_freq)
+
+
+# if __name__ == '__main__':
+#     sys.exit(main())

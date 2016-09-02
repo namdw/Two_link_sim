@@ -113,27 +113,31 @@ class TwoLink(object):
 	def getReward(self, goal):
 		self.goalDiffX = goal[0]//posStateDivider - self.redPosx//posStateDivider
 		self.goalDiffY = goal[1]//posStateDivider - self.redPosy//posStateDivider
-		self.Reward = sqrt(self.goalDiffX*self.goalDiffX + self.goalDiffY*self.goalDiffY)
-		return [self.Reward]
+		self.Reward = -1*sqrt(self.goalDiffX*self.goalDiffX + self.goalDiffY*self.goalDiffY)
+		return self.Reward
 
 	def getEndpoint(self):
 		return [gripper_pos[0]-ground_pos[0], ground_pos[1]-gripper_pos[1]]
 
 	def move_link1(self, delta_a):
-		global angle1
 		self.target_angle1 = self.target_angle1 + delta_a
 		# self.angle1 = angle1
 
 	def move_link2(self, delta_a):
-		global angle2 
 		self.target_angle2 = self.target_angle2 + delta_a
 		# self.angle2 = angle2
 
-	def randPoint(self):
+	def randGoal(self):
 		randx = random.random()*200+50
 		randy = random.random()*200+50
 		randr = 7
 		w.create_oval(randx-randr, randy-randr, randx+randr, randy+randr, fill='green', outline='green')
+	
+	def makeGoal(self, goal):
+		x = goal[0]
+		y = goal[1]
+		randr = 7
+		w.create_oval(x-randr, y-randr, x+randr, y+randr, fill='green', outline='green')
 
 
 	def controlLoop(self):
