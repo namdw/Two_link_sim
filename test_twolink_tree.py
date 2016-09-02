@@ -34,7 +34,7 @@ tryNumber = range(1,1,100) # how many try
 cntrl_freq = 100
 goal = [400,450]
 
-epsilon = 0.01
+epsilon = 0.005
 actionList = []
 actionX = range(-3,4)
 actionY = range(-3,4)
