@@ -150,6 +150,9 @@ class TwoLink(object):
 				self.angle2 = self.angle2 + (2*((self.target_angle2-self.angle2) > 0)-1) * max_speed/cntrl_freq
 				if(abs(self.target_angle2-self.angle2) < max_speed/cntrl_freq):
 					self.angle2 = self.target_angle2
+			# update stored position
+			self.redPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2)
+			self.redPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2)
 			self.redraw()
 			time.sleep(1/cntrl_freq)
 		print('End of while loop')

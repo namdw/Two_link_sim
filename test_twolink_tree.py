@@ -34,15 +34,16 @@ tryNumber = range(1,1,100) # how many try
 cntrl_freq = 100
 goal = [400,450]
 
-epsilon = 0.005
+epsilon = 0.1
 actionList = []
 actionX = range(-3,4)
 actionY = range(-3,4)
 for x in actionX:
 	for y in actionY:
 		actionList.append([x,y])
+valList = len(actionList)*[0]
 numState = 4
-filename = "pretest_tree.p"
+filename = "pretest_tree2.p"
 if os.path.isfile(filename):
 	f = open(filename,'rb')
 	q_tree = pickle.load(f)
@@ -55,14 +56,15 @@ else:
 # Function
 def getAction(state):
 	# valList = np.zeros(len(actionList))
-	valList = []
 	for i in range(len(actionList)):
 		currentQset = [state[0], state[1], state[2], state[3], actionList[i]]
 		value = q_tree.find(currentQset)
 		if(value == None): value = float('-inf')
-		valList.append(value)
+		valList[i] = value
 	indices = [i for i, x in enumerate(valList) if x == max(valList)]
-	return actionList[random.choice(indices)]
+	maxIndex = random.choice(indices)
+	# print(valList[maxIndex])
+	return actionList[maxIndex]
 
 
 def egreedyExplore(state):
@@ -147,6 +149,7 @@ for i in range(1000):
 	sim.move_link2(action[1]/cntrl_freq)
 	
 	reward = sim.getReward(goal)
+	# print(reward)
 	
 	currentQset = [state[0], state[1], state[2], state[3], action, reward]
 
