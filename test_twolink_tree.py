@@ -140,7 +140,7 @@ for i in range(10):
 
 # print(q_tree.root.children)
 
-for i in range(1000):
+for i in range(1000000):
 	# Command the first link to move delta_angle
 	state = sim.getState()
 	action = egreedyExplore(state)
