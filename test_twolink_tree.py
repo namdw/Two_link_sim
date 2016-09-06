@@ -34,7 +34,7 @@ tryNumber = range(1,1,100) # how many try
 cntrl_freq = 100
 goal = [400,450]
 
-epsilon = 0.1
+epsilon = 0.05
 actionList = []
 actionX = range(-3,4)
 actionY = range(-3,4)
@@ -63,7 +63,7 @@ def getAction(state):
 		valList[i] = value
 	indices = [i for i, x in enumerate(valList) if x == max(valList)]
 	maxIndex = random.choice(indices)
-	# print(valList[maxIndex])
+	print(valList[maxIndex])
 	return actionList[maxIndex]
 
 
@@ -101,9 +101,11 @@ for i in range(10):
 	angle = sim.getAngles()
 	pos = sim.getPos()
 	state = sim.getState()
+	stateVal = sim.getStateVal(goal)
 	sim.move_link1(0.5/cntrl_freq)
 	sim.move_link2(-1/cntrl_freq)
-	reward = sim.getReward(goal)
+	time.sleep(1/cntrl_freq)
+	reward = sim.getStateVal(goal)-stateVal
 
 	action = [0.5,-1]
 	currentQvalue = reward
@@ -113,7 +115,6 @@ for i in range(10):
 	# Update QvalueMatrix
 	q_tree.insert(currentQset)
 
-	time.sleep(1/cntrl_freq)
 
 
 print('lets move2')
@@ -123,9 +124,11 @@ for i in range(10):
 	angle = sim.getAngles()
 	pos = sim.getPos()
 	state = sim.getState()
+	stateVal = sim.getStateVal(goal)
 	sim.move_link1(-0.5/cntrl_freq)
 	sim.move_link2(1/cntrl_freq)
-	reward = sim.getReward(goal)
+	time.sleep(1/cntrl_freq)
+	reward = sim.getStateVal(goal)-stateVal
 
 	action = [-0.5,1]
 	currentQvalue = reward
@@ -135,7 +138,6 @@ for i in range(10):
 	# Update QvalueMatrix
 	q_tree.insert(currentQset)
 
-	time.sleep(1/cntrl_freq)
 
 
 # print(q_tree.root.children)
@@ -144,11 +146,13 @@ for i in range(1000):
 	# Command the first link to move delta_angle
 	state = sim.getState()
 	action = egreedyExplore(state)
+	stateVal = sim.getStateVal(goal)
 
 	sim.move_link1(action[0]/cntrl_freq)
 	sim.move_link2(action[1]/cntrl_freq)
+	time.sleep(1/cntrl_freq)
 	
-	reward = sim.getReward(goal)
+	reward = sim.getStateVal(goal)-stateVal
 	# print(reward)
 	
 	currentQset = [state[0], state[1], state[2], state[3], action, reward]
@@ -157,7 +161,6 @@ for i in range(1000):
 	q_tree.insert(currentQset)
 
 
-	time.sleep(1/cntrl_freq)
 print("done exploring")
 
 f = open(filename,'wb')

@@ -111,13 +111,13 @@ class TwoLink(object):
 		return [angleState1, angleState2, posStatex, posStatey]  
 
 #chlee modified_20160827
-	def getReward(self, goal):
+	def getStateVal(self, goal):
 		# goalDiffX = goal[0]//posStateDivider - gripper_pos[0]//posStateDivider
 		# goalDiffY = goal[1]//posStateDivider - gripper_pos[0]//posStateDivider
 		# Reward = -1*sqrt(goalDiffX*goalDiffX + goalDiffY*goalDiffY)
-		Reward = -1*sqrt((goal[0]-gripper_pos[0])**2 + (goal[1]-gripper_pos[1])**2)
-		print(Reward)
-		return Reward
+		stateVal = -1*sqrt((goal[0]-gripper_pos[0])**2 + (goal[1]-gripper_pos[1])**2)
+		# print(Reward)
+		return stateVal
 
 	def getEndpoint(self):
 		return [gripper_pos[0]-ground_pos[0], ground_pos[1]-gripper_pos[1]]
