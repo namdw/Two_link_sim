@@ -35,7 +35,7 @@ numTrain = 3
 cntrl_freq = 100
 goal = [150,100]
 
-epsilon = 0.01
+epsilon = 0.05
 actionList = []
 actionX = range(-3,4)
 actionY = range(-3,4)
