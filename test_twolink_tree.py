@@ -30,11 +30,12 @@ import pickle
 import os.path
 
 # Variables
-tryNumber = range(1,1,100) # how many try
+# tryNumber = range(1,1,100) # how many try
+numTrain = 3
 cntrl_freq = 100
-goal = [400,450]
+goal = [150,100]
 
-epsilon = 0.05
+epsilon = 0.01
 actionList = []
 actionX = range(-3,4)
 actionY = range(-3,4)
@@ -42,8 +43,8 @@ for x in actionX:
 	for y in actionY:
 		actionList.append([x,y])
 valList = len(actionList)*[0]
-numState = 4
-filename = "pretest_tree_inv.p"
+numState = 2
+filename = "pretest_tree_rel.p"
 if os.path.isfile(filename):
 	f = open(filename,'rb')
 	q_tree = pickle.load(f)
@@ -57,7 +58,7 @@ else:
 def getAction(state):
 	# valList = np.zeros(len(actionList))
 	for i in range(len(actionList)):
-		currentQset = [state[0], state[1], state[2], state[3], actionList[i]]
+		currentQset = [state[0], state[1], actionList[i]]
 		value = q_tree.find(currentQset)
 		if(value == None): value = float('-inf')
 		valList[i] = value
@@ -69,7 +70,7 @@ def getAction(state):
 
 def egreedyExplore(state):
 	if random.random() < epsilon:
-		print('random choice')
+		# print('random choice')
 		return random.choice(actionList)
 
 	else:
@@ -82,7 +83,7 @@ sim = TwoLink()
 
 # Start and display the Simulator graphics
 sim.show()
-sim.makeGoal(goal)
+# sim.randGoal()
 
 time.sleep(1)
 
@@ -95,76 +96,70 @@ time.sleep(1)
 
 print('lets move')
 for i in range(10):
-	# Command the first link to move delta_angle
 
-
-
-	angle = sim.getAngles()
-	pos = sim.getPos()
+	pos = sim.getEndpoint()
 	state = sim.getState()
-	stateVal = sim.getStateVal(goal)
+	stateVal = sim.getStateVal()
 	sim.move_link1(0.5/cntrl_freq)
 	sim.move_link2(-1/cntrl_freq)
 	time.sleep(1/cntrl_freq)
-	reward = sim.getStateVal(goal)-stateVal
+	reward = sim.getStateVal()-stateVal
 
 	action = [0.5,-1]
 	currentQvalue = reward
 
-	currentQset = [state[0], state[1], state[2], state[3], action, currentQvalue]
+	currentQset = [state[0], state[1], action, currentQvalue]
 
 	# Update QvalueMatrix
-	q_tree.insert(currentQset)
+	# q_tree.insert(currentQset)
 
 
 
 print('lets move2')
 for i in range(10):
-	# Command the first link to move delta_angle
 
-	angle = sim.getAngles()
-	pos = sim.getPos()
+	pos = sim.getEndpoint()
 	state = sim.getState()
-	stateVal = sim.getStateVal(goal)
+	stateVal = sim.getStateVal()
 	sim.move_link1(-0.5/cntrl_freq)
 	sim.move_link2(1/cntrl_freq)
 	time.sleep(1/cntrl_freq)
-	reward = sim.getStateVal(goal)-stateVal
+	reward = sim.getStateVal()-stateVal
 
 	action = [-0.5,1]
 	currentQvalue = reward
 
-	currentQset = [state[0], state[1], state[2], state[3], action, currentQvalue]
+	currentQset = [state[0], state[1], action, currentQvalue]
 
 	# Update QvalueMatrix
-	q_tree.insert(currentQset)
+	# q_tree.insert(currentQset)
 
 
+for numTry in range(numTrain):
+	sim.reset()
+	# sim.makeGoal(goal)
+	sim.randGoal()
+	for i in range(500):
+		# Command the first link to move delta_angle
+		state = sim.getState()
+		action = egreedyExplore(state)
+		stateVal = sim.getStateVal()
 
-# print(q_tree.root.children)
+		sim.move_link1(action[0]/cntrl_freq)
+		sim.move_link2(action[1]/cntrl_freq)
+		time.sleep(1/cntrl_freq)
+		
+		reward = sim.getStateVal()-stateVal
+		
+		currentQset = [state[0], state[1], action, reward]
 
-for i in range(500):
-	# Command the first link to move delta_angle
-	state = sim.getState()
-	action = egreedyExplore(state)
-	stateVal = sim.getStateVal(goal)
+		# Update QvalueMatrix
+		q_tree.insert(currentQset)
 
-	sim.move_link1(action[0]/cntrl_freq)
-	sim.move_link2(action[1]/cntrl_freq)
-	time.sleep(1/cntrl_freq)
-	
-	reward = sim.getStateVal(goal)-stateVal
-	# print(reward)
-	
-	currentQset = [state[0], state[1], state[2], state[3], action, reward]
-
-	# Update QvalueMatrix
-	q_tree.insert(currentQset)
-
-	#test invQ methods
-	state = sim.getState()
-	invQset = [state[0], state[1], state[2], state[3], [-1*action[0],-1*action[1]], -1*reward]
-	q_tree.insert(invQset)
+		#test invQ methods
+		state = sim.getState()
+		invQset = [state[0], state[1], [-1*action[0],-1*action[1]], -1*reward]
+		q_tree.insert(invQset)
 
 
 print("done exploring")

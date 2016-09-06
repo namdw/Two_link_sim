@@ -42,6 +42,7 @@ link1 = ''
 link2 = ''
 joint = ''
 gripper = ''
+goal_point = ''
 angle1 = 0
 angle2 = 0
 thread1 = ''
@@ -79,7 +80,22 @@ class TwoLink(object):
 		self.angle2 = initAngle2
 		self.target_angle1 = initAngle1
 		self.target_angle2 = initAngle2
+		self.goal = self.getEndpoint()
 	
+	def reset(self):
+		self.angle1 = initAngle1
+		self.angle2 = initAngle2
+		self.target_angle1 = initAngle1
+		self.target_angle2 = initAngle2
+
+		temp = self.getEndpoint()
+		x = temp[0]
+		y = temp[1]
+		delta_x = x - self.goal[0]
+		delta_y = self.goal[1] - y
+		w.move(goal_point, delta_x, delta_y)
+		self.goal = [x,y]
+
 	def show(self):
 		global thread1, thread2
 		thread1 = myThread(self.show_sub, 'display')
@@ -88,59 +104,50 @@ class TwoLink(object):
 		self.__run_control = True
 		thread2 = myThread(self.controlLoop, 'control')
 		thread2.start()
-		# thread1.join()
-		# thread2.join()
 
 	def getAngles(self):
 		return [self.angle1, self.angle2]
-
-
-#chlee modified_20160827
-	def getPos(self):
-		# self.redPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2)
-		# self.redPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2)
-		# return [self.redPosx, self.redPosy]
-		return gripper_pos
 		
-#chlee modified_20160827
 	def getState(self):
-		angleState1 = (self.angle1*degperpi)//angleStateDivider 
+		angleState1 = (self.angle1*degperpi - atan2(self.goal[1],self.goal[0]))//angleStateDivider 
 		angleState2 = (self.angle2*degperpi)//angleStateDivider
-		posStatex = gripper_pos[0]//posStateDivider
-		posStatey = gripper_pos[1]//posStateDivider
-		return [angleState1, angleState2, posStatex, posStatey]  
+		# posStatex = gripper_pos[0]//posStateDivider
+		# posStatey = gripper_pos[1]//posStateDivider
+		return [angleState1, angleState2]  
 
-#chlee modified_20160827
-	def getStateVal(self, goal):
-		# goalDiffX = goal[0]//posStateDivider - gripper_pos[0]//posStateDivider
-		# goalDiffY = goal[1]//posStateDivider - gripper_pos[0]//posStateDivider
-		# Reward = -1*sqrt(goalDiffX*goalDiffX + goalDiffY*goalDiffY)
-		stateVal = -1*sqrt((goal[0]-gripper_pos[0])**2 + (goal[1]-gripper_pos[1])**2)
-		# print(Reward)
-		return stateVal
+	def getStateVal(self):
+		endPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2+self.angle1)
+		endPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2+self.angle1)
+		return -1*sqrt((self.goal[0]-endPosx)**2 + (self.goal[1]-endPosy)**2)
 
 	def getEndpoint(self):
-		return [gripper_pos[0]-ground_pos[0], ground_pos[1]-gripper_pos[1]]
+		endPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2+self.angle1)
+		endPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2+self.angle1)
+		return [endPosx, endPosy]
 
 	def move_link1(self, delta_a):
 		self.target_angle1 = self.target_angle1 + delta_a
-		# self.angle1 = angle1
 
 	def move_link2(self, delta_a):
 		self.target_angle2 = self.target_angle2 + delta_a
-		# self.angle2 = angle2
 
 	def randGoal(self):
-		randx = random.random()*200+50
-		randy = random.random()*200+50
-		randr = 7
-		w.create_oval(randx-randr, randy-randr, randx+randr, randy+randr, fill='green', outline='green')
-	
-	def makeGoal(self, goal):
-		x = goal[0]
-		y = goal[1]
-		randr = 7
-		w.create_oval(x-randr, y-randr, x+randr, y+randr, fill='green', outline='green')
+		global goal_point
+		x = random.random()*150
+		y = random.random()*300-150
+		delta_x = x - self.goal[0]
+		delta_y = self.goal[1] - y
+		w.move(goal_point, delta_x, delta_y)
+		self.goal = [x, y]
+
+	def makeGoal(self, newgoal):
+		global goal_point
+		x = newgoal[0]
+		y = newgoal[1]
+		delta_x = x - self.goal[0]
+		delta_y = self.goal[1] - y
+		w.move(goal_point, delta_x, delta_y)
+		self.goal = [x, y]
 
 
 	def controlLoop(self):
@@ -180,7 +187,7 @@ class TwoLink(object):
 		w.move(gripper, delta_x2, delta_y2)
 
 	def show_sub(self):
-		global joint_pos, gripper_pos, w, link1, link2, joint, gripper, root
+		global joint_pos, gripper_pos, w, link1, link2, joint, gripper, root, goal_point
 		if (self.__root==''):
 			self.__root = Tk()
 			self.__root.title = "Two Link Arm Simulator"
@@ -195,6 +202,7 @@ class TwoLink(object):
 			w.grid(row=0,column=0)
 
 			node_r = 10
+			goal_r = 7
 
 			ground = w.create_oval(ground_pos[0]-node_r, ground_pos[1]-node_r, ground_pos[0]+node_r, ground_pos[1]+node_r, fill='red', outline='red')
 			joint_pos = (ground_pos[0] + link1_len * cos(angle1), ground_pos[1] + link1_len * sin(angle2))
@@ -202,6 +210,8 @@ class TwoLink(object):
 			gripper_pos = (joint_pos[0] + link2_len * cos(angle1+angle2), joint_pos[1] + link2_len * sin(angle1+angle2))
 			gripper = w.create_oval(gripper_pos[0]-node_r, gripper_pos[1]-node_r, gripper_pos[0]+node_r, gripper_pos[1]+node_r, outline='black', width=3)
 			
+			goal_point = w.create_oval(self.goal[0]+300-goal_r, 300-self.goal[1]-goal_r, self.goal[0]+300+goal_r, 300-self.goal[1]+goal_r, fill='green', outline='green')
+
 			link1 = w.create_line(ground_pos[0], ground_pos[1], joint_pos[0], joint_pos[1], tags='link',  width=5)
 			link2 = w.create_line(joint_pos[0], joint_pos[1], gripper_pos[0], gripper_pos[1], tags='link', width=5)
 			self.__root.protocol("WM_DELETE_WINDOW", self.on_closing)
