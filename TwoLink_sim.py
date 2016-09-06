@@ -34,7 +34,7 @@ degperpi = 57.296
 
 ground_pos = (300,300)
 joint_pos = (0,0)
-gripper_pos = (0,0)
+gripper_pos = [0,0]
 link1_len = 100
 link2_len = 100
 w = ''
@@ -97,24 +97,27 @@ class TwoLink(object):
 
 #chlee modified_20160827
 	def getPos(self):
-		self.redPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2)
-		self.redPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2)
-		return [self.redPosx, self.redPosy]
+		# self.redPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2)
+		# self.redPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2)
+		# return [self.redPosx, self.redPosy]
+		return gripper_pos
 		
 #chlee modified_20160827
 	def getState(self):
-		self.angleState1 = (self.angle1*degperpi)//angleStateDivider 
-		self.angleState2 = (self.angle2*degperpi)//angleStateDivider
-		self.posStatex = self.redPosx//posStateDivider
-		self.posStatey = self.redPosy//posStateDivider
-		return [self.angleState1, self.angleState2, self.posStatex, self.posStatey]  
+		angleState1 = (self.angle1*degperpi)//angleStateDivider 
+		angleState2 = (self.angle2*degperpi)//angleStateDivider
+		posStatex = gripper_pos[0]//posStateDivider
+		posStatey = gripper_pos[1]//posStateDivider
+		return [angleState1, angleState2, posStatex, posStatey]  
 
 #chlee modified_20160827
 	def getReward(self, goal):
-		self.goalDiffX = goal[0]//posStateDivider - self.redPosx//posStateDivider
-		self.goalDiffY = goal[1]//posStateDivider - self.redPosy//posStateDivider
-		self.Reward = -1*sqrt(self.goalDiffX*self.goalDiffX + self.goalDiffY*self.goalDiffY)
-		return self.Reward
+		# goalDiffX = goal[0]//posStateDivider - gripper_pos[0]//posStateDivider
+		# goalDiffY = goal[1]//posStateDivider - gripper_pos[0]//posStateDivider
+		# Reward = -1*sqrt(goalDiffX*goalDiffX + goalDiffY*goalDiffY)
+		Reward = -1*sqrt((goal[0]-gripper_pos[0])**2 + (goal[1]-gripper_pos[1])**2)
+		print(Reward)
+		return Reward
 
 	def getEndpoint(self):
 		return [gripper_pos[0]-ground_pos[0], ground_pos[1]-gripper_pos[1]]
@@ -151,8 +154,8 @@ class TwoLink(object):
 				if(abs(self.target_angle2-self.angle2) < max_speed/cntrl_freq):
 					self.angle2 = self.target_angle2
 			# update stored position
-			self.redPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2)
-			self.redPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2)
+			# self.redPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2)
+			# self.redPosy = link1_len*sin(self.angle1) + link2_len*sin(self.angle2)
 			self.redraw()
 			time.sleep(1/cntrl_freq)
 		print('End of while loop')

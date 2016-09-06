@@ -43,7 +43,7 @@ for x in actionX:
 		actionList.append([x,y])
 valList = len(actionList)*[0]
 numState = 4
-filename = "pretest_tree2.p"
+filename = "pretest_tree.p"
 if os.path.isfile(filename):
 	f = open(filename,'rb')
 	q_tree = pickle.load(f)
@@ -140,7 +140,7 @@ for i in range(10):
 
 # print(q_tree.root.children)
 
-for i in range(1000000):
+for i in range(1000):
 	# Command the first link to move delta_angle
 	state = sim.getState()
 	action = egreedyExplore(state)
