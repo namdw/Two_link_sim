@@ -43,7 +43,7 @@ for x in actionX:
 		actionList.append([x,y])
 valList = len(actionList)*[0]
 numState = 4
-filename = "pretest_tree.p"
+filename = "pretest_tree_inv.p"
 if os.path.isfile(filename):
 	f = open(filename,'rb')
 	q_tree = pickle.load(f)
@@ -63,12 +63,13 @@ def getAction(state):
 		valList[i] = value
 	indices = [i for i, x in enumerate(valList) if x == max(valList)]
 	maxIndex = random.choice(indices)
-	print(valList[maxIndex])
+	# print(valList[maxIndex])
 	return actionList[maxIndex]
 
 
 def egreedyExplore(state):
 	if random.random() < epsilon:
+		print('random choice')
 		return random.choice(actionList)
 
 	else:
@@ -142,7 +143,7 @@ for i in range(10):
 
 # print(q_tree.root.children)
 
-for i in range(1000):
+for i in range(500):
 	# Command the first link to move delta_angle
 	state = sim.getState()
 	action = egreedyExplore(state)
@@ -159,6 +160,11 @@ for i in range(1000):
 
 	# Update QvalueMatrix
 	q_tree.insert(currentQset)
+
+	#test invQ methods
+	state = sim.getState()
+	invQset = [state[0], state[1], state[2], state[3], [-1*action[0],-1*action[1]], -1*reward]
+	q_tree.insert(invQset)
 
 
 print("done exploring")
