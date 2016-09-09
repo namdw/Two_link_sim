@@ -58,7 +58,13 @@ initAngle2 = -90/degperpi
 posStateDivider = 5
 angleStateDivider = 1
 
-
+def sign(num):
+	if num > 0:
+		return 1
+	elif num < 0:
+		return -1
+	else:
+		return 0	
 
 class myThread(threading.Thread):
 	def __init__(self, func, name):
@@ -114,6 +120,16 @@ class TwoLink(object):
 		# posStatex = gripper_pos[0]//posStateDivider
 		# posStatey = gripper_pos[1]//posStateDivider
 		return [angleState1, angleState2]  
+
+	def getGoalDist(self):
+		return (sqrt(self.goal[0]**2 + self.goal[1]**2))//posStateDivider
+
+	def getVert(self):
+		endpoints = self.getEndpoint()
+		return sign(self.getGoalDist()-sqrt(endpoints[0]**2 + endpoints[1]**2))
+
+	def getHorz(self):
+		return sign(self.angle1*degperpi - atan2(self.goal[1],self.goal[0]))
 
 	def getStateVal(self):
 		endPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2+self.angle1)

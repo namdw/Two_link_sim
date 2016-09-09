@@ -31,11 +31,11 @@ import os.path
 
 # Variables
 # tryNumber = range(1,1,100) # how many try
-numTrain = 3
+numTrain = 5
 cntrl_freq = 100
 goal = [150,100]
 
-epsilon = 0.05
+epsilon = 0.2
 actionList = []
 actionX = range(-3,4)
 actionY = range(-3,4)
@@ -43,8 +43,10 @@ for x in actionX:
 	for y in actionY:
 		actionList.append([x,y])
 valList = len(actionList)*[0]
-numState = 2
-filename = "pretest_tree_rel.p"
+numState = 3
+filename = "pretest_tree_set1.p"
+filename2 = "pretest_tree_set2.p"
+filename3 = "pretest_tree_set3.p"
 if os.path.isfile(filename):
 	f = open(filename,'rb')
 	q_tree = pickle.load(f)
@@ -52,14 +54,31 @@ if os.path.isfile(filename):
 else:
 	q_tree = ValueTree(numState)
 
+if os.path.isfile(filename2):
+	f = open(filename,'rb')
+	q_tree = pickle.load(f)
+	f.close()
+else:
+	q_tree2 = ValueTree(numState)
+
+if os.path.isfile(filename3):
+	f = open(filename,'rb')
+	q_tree = pickle.load(f)
+	f.close()
+else:
+	q_tree3 = ValueTree(numState)
+
 
 
 # Function
-def getAction(state):
+def getAction(tree, state):
 	# valList = np.zeros(len(actionList))
 	for i in range(len(actionList)):
-		currentQset = [state[0], state[1], actionList[i]]
-		value = q_tree.find(currentQset)
+		# currentQset = [state[0], state[1], actionList[i]]
+		currentQset = list(state)
+		currentQset.append(actionList[i])
+		print(currentQset)
+		value = tree.find(currentQset)
 		if(value == None): value = float('-inf')
 		valList[i] = value
 	indices = [i for i, x in enumerate(valList) if x == max(valList)]
@@ -68,14 +87,16 @@ def getAction(state):
 	return actionList[maxIndex]
 
 
-def egreedyExplore(state):
+def egreedyExplore(tree, state):
 	if random.random() < epsilon:
 		# print('random choice')
 		return random.choice(actionList)
 
 	else:
-		return getAction(state)
+		return getAction(tree, state)
 
+def mean(numbers):
+    return float(sum(numbers)) / max(len(numbers), 1)
 
 # def main():
 # Create the simulator object
@@ -94,45 +115,51 @@ time.sleep(1)
 
 # temporary QA pair
 
-print('lets move')
-for i in range(10):
+# print('lets move')
+# for i in range(10):
 
-	pos = sim.getEndpoint()
-	state = sim.getState()
-	stateVal = sim.getStateVal()
-	sim.move_link1(0.5/cntrl_freq)
-	sim.move_link2(-1/cntrl_freq)
-	time.sleep(1/cntrl_freq)
-	reward = sim.getStateVal()-stateVal
+# 	pos = sim.getEndpoint()
+# 	state = sim.getState()
+# 	stateVal = sim.getStateVal()
+# 	sim.move_link1(0.5/cntrl_freq)
+# 	sim.move_link2(-1/cntrl_freq)
+# 	time.sleep(1/cntrl_freq)
+# 	reward = sim.getStateVal()-stateVal
 
-	action = [0.5,-1]
-	currentQvalue = reward
+# 	action = [0.5,-1]
+# 	currentQvalue = reward
 
-	currentQset = [state[0], state[1], action, currentQvalue]
+# 	# currentQset = [state[0], state[1], action, currentQvalue]
+# 	currentQset = list(state)
+# 	currentQset.append(action)
+# 	currentQset.append(currentQvalue)
 
-	# Update QvalueMatrix
-	# q_tree.insert(currentQset)
+# 	# Update QvalueMatrix
+# 	# q_tree.insert(currentQset)
 
 
 
-print('lets move2')
-for i in range(10):
+# print('lets move2')
+# for i in range(10):
 
-	pos = sim.getEndpoint()
-	state = sim.getState()
-	stateVal = sim.getStateVal()
-	sim.move_link1(-0.5/cntrl_freq)
-	sim.move_link2(1/cntrl_freq)
-	time.sleep(1/cntrl_freq)
-	reward = sim.getStateVal()-stateVal
+# 	pos = sim.getEndpoint()
+# 	state = sim.getState()
+# 	stateVal = sim.getStateVal()
+# 	sim.move_link1(-0.5/cntrl_freq)
+# 	sim.move_link2(1/cntrl_freq)
+# 	time.sleep(1/cntrl_freq)
+# 	reward = sim.getStateVal()-stateVal
 
-	action = [-0.5,1]
-	currentQvalue = reward
+# 	action = [-0.5,1]
+# 	currentQvalue = reward
 
-	currentQset = [state[0], state[1], action, currentQvalue]
+# 	# currentQset = [state[0], state[1], action, currentQvalue]
+# 	currentQset = state
+# 	currentQset.append(action)
+# 	currentQset.append(currentQvalue)
 
-	# Update QvalueMatrix
-	# q_tree.insert(currentQset)
+# 	# Update QvalueMatrix
+# 	# q_tree.insert(currentQset)
 
 
 for numTry in range(numTrain):
@@ -142,11 +169,13 @@ for numTry in range(numTrain):
 	for i in range(500):
 		# Command the first link to move delta_angle
 		state = sim.getState()
-		action = egreedyExplore(state)
+		action = egreedyExplore(q_tree, [state, sim.getGoalDist()])
+		action2 = egreedyExplore(q_tree2, [state, sim.getVert()])
+		action3 = egreedyExplore(q_tree3, [state, sim.getHorz()])
 		stateVal = sim.getStateVal()
 
-		sim.move_link1(action[0]/cntrl_freq)
-		sim.move_link2(action[1]/cntrl_freq)
+		sim.move_link1(mean(action[0], action2[0], action3[0])/cntrl_freq)
+		sim.move_link2(mean(action[1], action2[1], action3[1])/cntrl_freq)
 		time.sleep(1/cntrl_freq)
 		
 		reward = sim.getStateVal()-stateVal
@@ -161,10 +190,34 @@ for numTry in range(numTrain):
 		invQset = [state[0], state[1], [-1*action[0],-1*action[1]], -1*reward]
 		q_tree.insert(invQset)
 
+		currentQset = [state[0], state[1], action2, reward]
+		# Update QvalueMatrix
+		q_tree2.insert(currentQset)
+
+		#test invQ methods
+		state = sim.getState()
+		invQset = [state[0], state[1], [-1*action2[0],-1*action2[1]], -1*reward]
+		q_tree2.insert(invQset)
+
+		currentQset = [state[0], state[1], action2, reward]
+
+		# Update QvalueMatrix
+		q_tree3.insert(currentQset)
+
+		#test invQ methods
+		state = sim.getState()
+		invQset = [state[0], state[1], [-1*action3[0],-1*action3[1]], -1*reward]
+		q_tree3.insert(invQset)
 
 print("done exploring")
 
 f = open(filename,'wb')
+pickle.dump(q_tree,f)
+f.close()
+f = open(filename2,'wb')
+pickle.dump(q_tree,f)
+f.close()
+f = open(filename3,'wb')
 pickle.dump(q_tree,f)
 f.close()
 print("done with pickle")
