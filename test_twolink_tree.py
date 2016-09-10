@@ -31,7 +31,7 @@ import os.path
 
 # Variables
 # tryNumber = range(1,1,100) # how many try
-numTrain = 5
+numTrain = 100
 cntrl_freq = 100
 goal = [150,100]
 
@@ -56,14 +56,14 @@ else:
 
 if os.path.isfile(filename2):
 	f = open(filename,'rb')
-	q_tree = pickle.load(f)
+	q_tree2 = pickle.load(f)
 	f.close()
 else:
 	q_tree2 = ValueTree(numState)
 
 if os.path.isfile(filename3):
 	f = open(filename,'rb')
-	q_tree = pickle.load(f)
+	q_tree3 = pickle.load(f)
 	f.close()
 else:
 	q_tree3 = ValueTree(numState)
@@ -82,7 +82,6 @@ def getAction(tree, state):
 		valList[i] = value
 	indices = [i for i, x in enumerate(valList) if x == max(valList)]
 	maxIndex = random.choice(indices)
-	# print(valList[maxIndex])
 	return actionList[maxIndex]
 
 
@@ -172,7 +171,6 @@ for numTry in range(numTrain):
 		action2 = egreedyExplore(q_tree2, [state[0], state[1], sim.getVert()])
 		action3 = egreedyExplore(q_tree3, [state[0], state[1], sim.getHorz()])
 		stateVal = sim.getStateVal()
-
 		sim.move_link1(round(mean([action[0], action2[0], action3[0]]))/cntrl_freq)
 		sim.move_link2(round(mean([action[1], action2[1], action3[1]]))/cntrl_freq)
 		time.sleep(1/cntrl_freq)
