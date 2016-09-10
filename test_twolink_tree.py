@@ -77,7 +77,6 @@ def getAction(tree, state):
 		# currentQset = [state[0], state[1], actionList[i]]
 		currentQset = list(state)
 		currentQset.append(actionList[i])
-		print(currentQset)
 		value = tree.find(currentQset)
 		if(value == None): value = float('-inf')
 		valList[i] = value
@@ -169,44 +168,44 @@ for numTry in range(numTrain):
 	for i in range(500):
 		# Command the first link to move delta_angle
 		state = sim.getState()
-		action = egreedyExplore(q_tree, [state, sim.getGoalDist()])
-		action2 = egreedyExplore(q_tree2, [state, sim.getVert()])
-		action3 = egreedyExplore(q_tree3, [state, sim.getHorz()])
+		action = egreedyExplore(q_tree, [state[0], state[1], sim.getGoalDist()])
+		action2 = egreedyExplore(q_tree2, [state[0], state[1], sim.getVert()])
+		action3 = egreedyExplore(q_tree3, [state[0], state[1], sim.getHorz()])
 		stateVal = sim.getStateVal()
 
-		sim.move_link1(mean(action[0], action2[0], action3[0])/cntrl_freq)
-		sim.move_link2(mean(action[1], action2[1], action3[1])/cntrl_freq)
+		sim.move_link1(round(mean([action[0], action2[0], action3[0]]))/cntrl_freq)
+		sim.move_link2(round(mean([action[1], action2[1], action3[1]]))/cntrl_freq)
 		time.sleep(1/cntrl_freq)
 		
 		reward = sim.getStateVal()-stateVal
 		
-		currentQset = [state[0], state[1], action, reward]
+		currentQset = [state[0], state[1], sim.getGoalDist(), action, reward]
 
 		# Update QvalueMatrix
 		q_tree.insert(currentQset)
 
 		#test invQ methods
 		state = sim.getState()
-		invQset = [state[0], state[1], [-1*action[0],-1*action[1]], -1*reward]
+		invQset = [state[0], state[1], [-1*action[0],-1*action[1]], sim.getGoalDist(), -1*reward]
 		q_tree.insert(invQset)
 
-		currentQset = [state[0], state[1], action2, reward]
+		currentQset = [state[0], state[1], sim.getVert(), action2, reward]
 		# Update QvalueMatrix
 		q_tree2.insert(currentQset)
 
 		#test invQ methods
 		state = sim.getState()
-		invQset = [state[0], state[1], [-1*action2[0],-1*action2[1]], -1*reward]
+		invQset = [state[0], state[1], sim.getVert(), [-1*action2[0],-1*action2[1]], -1*reward]
 		q_tree2.insert(invQset)
 
-		currentQset = [state[0], state[1], action2, reward]
+		currentQset = [state[0], state[1], sim.getHorz(), action3, reward]
 
 		# Update QvalueMatrix
 		q_tree3.insert(currentQset)
 
 		#test invQ methods
 		state = sim.getState()
-		invQset = [state[0], state[1], [-1*action3[0],-1*action3[1]], -1*reward]
+		invQset = [state[0], state[1], sim.getHorz(), [-1*action3[0],-1*action3[1]], -1*reward]
 		q_tree3.insert(invQset)
 
 print("done exploring")
