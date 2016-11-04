@@ -115,21 +115,24 @@ class TwoLink(object):
 		return [self.angle1, self.angle2]
 		
 	def getState(self):
-		angleState1 = (self.angle1*degperpi - atan2(self.goal[1],self.goal[0]))//angleStateDivider 
+		angleState1 = (self.angle1*degperpi - atan2(self.goal[1],self.goal[0])*degperpi)//angleStateDivider 
 		angleState2 = (self.angle2*degperpi)//angleStateDivider
 		# posStatex = gripper_pos[0]//posStateDivider
 		# posStatey = gripper_pos[1]//posStateDivider
 		return [angleState1, angleState2]  
 
 	def getGoalDist(self):
-		return (sqrt(self.goal[0]**2 + self.goal[1]**2))//posStateDivider
+		# return (sqrt(self.goal[0]**2 + self.goal[1]**2))//posStateDivider
+		return (sqrt(self.goal[0]**2 + self.goal[1]**2))
 
 	def getVert(self):
 		endpoints = self.getEndpoint()
 		return sign(self.getGoalDist()-sqrt(endpoints[0]**2 + endpoints[1]**2))
 
 	def getHorz(self):
-		return sign(self.angle1*degperpi - atan2(self.goal[1],self.goal[0]))
+		# return sign(self.angle1 - atan2(self.goal[1],self.goal[0]))
+		endpoints = self.getEndpoint()
+		return sign(atan2(endpoints[1],endpoints[0]) - atan2(self.goal[1],self.goal[0]))
 
 	def getStateVal(self):
 		endPosx = link1_len*cos(self.angle1) + link2_len*cos(self.angle2+self.angle1)

@@ -31,42 +31,43 @@ import os.path
 
 # Variables
 # tryNumber = range(1,1,100) # how many try
-numTrain = 100
+numTrain = 10
 cntrl_freq = 100
 goal = [150,100]
 
-epsilon = 0.2
+epsilon = 0.1
 actionList = []
-actionX = range(-3,4)
-actionY = range(-3,4)
-for x in actionX:
-	for y in actionY:
-		actionList.append([x,y])
+actionX = range(-2,3)
+actionY = range(-2,3)
+actionList = actionX
+# for x in actionX:
+# 	for y in actionY:
+# 		actionList.append([x,y])
 valList = len(actionList)*[0]
 numState = 3
-filename = "pretest_tree_set1.p"
+filename1 = "pretest_tree_set1.p"
 filename2 = "pretest_tree_set2.p"
-filename3 = "pretest_tree_set3.p"
-if os.path.isfile(filename):
-	f = open(filename,'rb')
-	q_tree = pickle.load(f)
+# filename3 = "pretest_tree_set3.p"
+if os.path.isfile(filename1):
+	f = open(filename1,'rb')
+	q_tree1 = pickle.load(f)
 	f.close()
 else:
-	q_tree = ValueTree(numState)
+	q_tree1 = ValueTree(numState)
 
 if os.path.isfile(filename2):
-	f = open(filename,'rb')
+	f = open(filename2,'rb')
 	q_tree2 = pickle.load(f)
 	f.close()
 else:
 	q_tree2 = ValueTree(numState)
 
-if os.path.isfile(filename3):
-	f = open(filename,'rb')
-	q_tree3 = pickle.load(f)
-	f.close()
-else:
-	q_tree3 = ValueTree(numState)
+# if os.path.isfile(filename3):
+# 	f = open(filename,'rb')
+# 	q_tree3 = pickle.load(f)
+# 	f.close()
+# else:
+# 	q_tree3 = ValueTree(numState)
 
 
 
@@ -79,6 +80,7 @@ def getAction(tree, state):
 		currentQset.append(actionList[i])
 		value = tree.find(currentQset)
 		if(value == None): value = float('-inf')
+		# if(value == None): value = 0
 		valList[i] = value
 	indices = [i for i, x in enumerate(valList) if x == max(valList)]
 	maxIndex = random.choice(indices)
@@ -167,56 +169,70 @@ for numTry in range(numTrain):
 	for i in range(500):
 		# Command the first link to move delta_angle
 		state = sim.getState()
-		action = egreedyExplore(q_tree, [state[0], state[1], sim.getGoalDist()])
+		# action = egreedyExplore(q_tree, [state[0], state[1], sim.getGoalDist()])
+		action1 = egreedyExplore(q_tree1, [state[0], state[1], sim.getHorz()])
 		action2 = egreedyExplore(q_tree2, [state[0], state[1], sim.getVert()])
-		action3 = egreedyExplore(q_tree3, [state[0], state[1], sim.getHorz()])
 		stateVal = sim.getStateVal()
-		sim.move_link1(round(mean([action[0], action2[0], action3[0]]))/cntrl_freq)
-		sim.move_link2(round(mean([action[1], action2[1], action3[1]]))/cntrl_freq)
+		# sim.move_link1(round(mean([action[0], action2[0], action3[0]]))/cntrl_freq)
+		# sim.move_link2(round(mean([action[1], action2[1], action3[1]]))/cntrl_freq)
+		# sim.move_link1(round(sum([action[0], action2[0], action3[0]]))/cntrl_freq)
+		# sim.move_link2(round(sum([action[1], action2[1], action3[1]]))/cntrl_freq)
+		sim.move_link1(action1/cntrl_freq)
+		reward1 = sim.getStateVal()-stateVal
+		stateVal = sim.getStateVal()
+		sim.move_link2(action2/cntrl_freq)
+		reward2 = sim.getStateVal()-stateVal
 		time.sleep(1/cntrl_freq)
 		
-		reward = sim.getStateVal()-stateVal
-		
-		currentQset = [state[0], state[1], sim.getGoalDist(), action, reward]
+		# if action1!=0:
+		# 	reward = reward-0.1
+		# if action2!=0:
+		# 	reward = reward-0.1
+
+		## Global ACtion Control
+		# currentQset = [state[0], state[1], sim.getGoalDist(), action, reward]
+
+		# # Update QvalueMatrix
+		# q_tree.insert(currentQset)
+
+		# #test invQ methods
+		# state = sim.getState()
+		# invQset = [state[0], state[1], [-1*action[0],-1*action[1]], sim.getGoalDist(), -1*reward]
+		# q_tree.insert(invQset)
+
+		## Link 1 ACtion Control
+		currentQset = [state[0], state[1], sim.getHorz(), action1, reward1]
 
 		# Update QvalueMatrix
-		q_tree.insert(currentQset)
+		q_tree1.insert(currentQset)
 
 		#test invQ methods
 		state = sim.getState()
-		invQset = [state[0], state[1], [-1*action[0],-1*action[1]], sim.getGoalDist(), -1*reward]
-		q_tree.insert(invQset)
+		invQset = [state[0], state[1], sim.getHorz(), -1*action1, -1*reward1]
+		q_tree1.insert(invQset)
 
-		currentQset = [state[0], state[1], sim.getVert(), action2, reward]
+		## Link 2 Action Control
+		currentQset = [state[0], state[1], sim.getVert(), action2, reward2]
 		# Update QvalueMatrix
 		q_tree2.insert(currentQset)
 
 		#test invQ methods
 		state = sim.getState()
-		invQset = [state[0], state[1], sim.getVert(), [-1*action2[0],-1*action2[1]], -1*reward]
+		invQset = [state[0], state[1], sim.getVert(), -1*action2, -1*reward2]
 		q_tree2.insert(invQset)
 
-		currentQset = [state[0], state[1], sim.getHorz(), action3, reward]
-
-		# Update QvalueMatrix
-		q_tree3.insert(currentQset)
-
-		#test invQ methods
-		state = sim.getState()
-		invQset = [state[0], state[1], sim.getHorz(), [-1*action3[0],-1*action3[1]], -1*reward]
-		q_tree3.insert(invQset)
 
 print("done exploring")
 
-f = open(filename,'wb')
-pickle.dump(q_tree,f)
+f = open(filename1,'wb')
+pickle.dump(q_tree1,f)
 f.close()
 f = open(filename2,'wb')
-pickle.dump(q_tree,f)
+pickle.dump(q_tree2,f)
 f.close()
-f = open(filename3,'wb')
-pickle.dump(q_tree,f)
-f.close()
+# f = open(filename3,'wb')
+# pickle.dump(q_tree3,f)
+# f.close()
 print("done with pickle")
 
 # if __name__ == '__main__':
